@@ -6,4 +6,4 @@
  - For Windows, I don't know -- Google it. 
 2. Check that everything installed correctly by running `npm -v` & `node -v`. 
 3. Clone this repository with `git clone https://github.com/alexboii/Philippo-2-Philippo-Chat`, navigate to the folder and run `npm install` and then `npm start`.
-4. You should seen an electron app appear. 
+4. You should see an electron app appear. 
