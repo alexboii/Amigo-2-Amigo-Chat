@@ -1,12 +1,12 @@
 {
-  "name": "basic-electron-react-boilerplate",
+  "name": "philippo-2-philippo-chat",
   "version": "0.7.0",
-  "description": "Minimal and modern react+electron+webpack boilerplate",
+  "description": "P2P Chat Using NAT Traversal Techniques",
   "author": "Phillip Barbiero",
-  "homepage": "https://github.com/pbarbiero/basic-electron-react-boilerplate",
+  "homepage": "https://github.com/alexboii/Philippo-2-Philippo-Chat",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pbarbiero/basic-electron-react-boilerplate.git"
+    "url": "https://github.com/alexboii/Philippo-2-Philippo-Chat.git"
   },
   "license": "MIT",
   "main": "main.js",
