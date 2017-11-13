@@ -4,8 +4,8 @@ const dgram = require('dgram');
 const net = require('net');
 const readline = require('readline');
 
-var SERVER_ADDRESS = "localhost";
-var SERVER_PORT = 80;
+const SERVER_ADDRESS = "localhost";
+const SERVER_PORT = 80;
 
 
 var udp_socket = dgram.createSocket('udp4');
@@ -28,7 +28,6 @@ udp_socket.on('error', (err) => {
   });
   
 udp_socket.on('message', (msg, rinfo) => {
-    //console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
     try {
         msg = JSON.parse(msg);
       } catch (e) {
@@ -66,12 +65,10 @@ udp_socket.bind();
 
 var connectToPeer = function(address, port)
 {
+    console.log(`Connected to peer ${address}:${port}\n`);
     peer_address = address;
     peer_port = port;
     msgUpdate();
-    //var msg = {type:'MSG',msg:process.argv[2]};
-
-    //udp_socket.send(Buffer.from(JSON.stringify(msg)),port,address);
 }
 
 var msgUpdate =function()
