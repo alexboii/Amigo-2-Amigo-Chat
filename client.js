@@ -4,7 +4,7 @@ const dgram = require('dgram');
 const net = require('net');
 const readline = require('readline');
 
-const SERVER_ADDRESS = "localhost";
+const SERVER_ADDRESS = "13.82.236.21";
 const SERVER_PORT = 80;
 
 

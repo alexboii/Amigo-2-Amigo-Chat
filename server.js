@@ -3,7 +3,7 @@ const dgram = require('dgram');
 //TCP
 const net = require('net');
 
-var SERVER_ADDRESS = "localhost";
+var SERVER_ADDRESS = "13.82.236.21";
 var SERVER_PORT = 80;
 
 var udp_socket = dgram.createSocket('udp4');
@@ -11,11 +11,7 @@ var udp_socket = dgram.createSocket('udp4');
 var saved_ip = "";
 var saved_port = 0;
 
-const message = Buffer.from('Some bytes');
-const client = dgram.createSocket('udp4');
-client.send(message, 41234, 'localhost', (err) => {
-  client.close();
-});
+//var connections = {}
 
 udp_socket.on('error', (err) => {
     console.log(`server error:\n${err.stack}`);
@@ -23,7 +19,6 @@ udp_socket.on('error', (err) => {
   });
   
 udp_socket.on('message', (msg, rinfo) => {
-    console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);    
     try {
         msg = JSON.parse(msg);
       } catch (e) {
@@ -74,6 +69,8 @@ udp_socket.on('message', (msg, rinfo) => {
                 saved_port = 0;
             }
 
+            break;
+            case "ACK":
             break;
     }
 
