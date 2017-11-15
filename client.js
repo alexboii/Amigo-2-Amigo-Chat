@@ -100,7 +100,7 @@ udp_socket.on('listening', () => {
             }
             else
             {
-                console.log("server responded???");
+                console.log("Waiting for matchmaking");
                 serverAck = false;
                 clearInterval(serverTimeout);
             }
@@ -113,7 +113,7 @@ udp_socket.bind();
 
 var connectToPeer = function(address, port)
 {
-    console.log(`Connecting to peer ${address}:${port}\n`);
+    console.log(`Connecting to peer ${address}:${port}`);
     KeepAlive();
     
     peer_address = address;
@@ -160,10 +160,17 @@ function KeepAlive() {
         clearInterval(timeoutHandle);
     }
     rng_id = Math.floor(Math.random()*1000);  
-    var syn_msg = {type:'SYN', id:rng_id}    
+    var syn_msg = {type:'SYN', id:rng_id}
+    let attempts = 1;    
     timeoutHandle = setInterval(() => {
+        if(attempts>3)
+        {
+            console.log("Other client disconnected");
+            process.exit();
+        }
         udp_socket.send(Buffer.from(JSON.stringify(syn_msg)),peer_port,peer_address);
-    }, 3000);
+        attempts++;
+    }, 1000);
 }
 
 function NotifyAck(id) {
