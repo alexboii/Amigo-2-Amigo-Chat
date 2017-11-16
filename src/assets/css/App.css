@@ -36,13 +36,21 @@ h4 {
   justify-content: center;
   flex-direction: column;
 }
-.button-holder {
-  flex: 2;
+.session-holder {
+  flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  flex-direction: row;
+  justify-content: space-between;
+  flex-direction: column;
 }
+.token-holder {
+  flex: 0.8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
 input {
   border: 2px solid #ccc !important;
   height: 35px;
@@ -58,6 +66,7 @@ input[type="text"]:focus {
 }
 .server-address-holder {
   display: flex;
+  flex: 0.8;
   align-items: center;
   justify-content: space-around;
   flex-direction: row;
@@ -186,20 +195,20 @@ input[type="text"]:focus {
 .button--nuka.button--inverted::after {
   background: #fff;
 }
-.button--nuka:hover {
+.button--nuka.active {
   color: #fff;
 }
-.button--nuka:hover::before {
+.button--nuka.active::before {
   opacity: 1;
 }
-.button--nuka:hover::after {
+.button--nuka.active::after {
   background-color: #222;
 }
-.button--nuka.button--inverted:hover::after {
+.button--nuka.button--inverted.active::after {
   background-color: #7986cb;
 }
-.button--nuka:hover::after,
-.button--nuka:hover::before {
+.button--nuka.active::after,
+.button--nuka.active::before {
   -webkit-transform: scale3d(1, 1, 1);
   transform: scale3d(1, 1, 1);
 }
