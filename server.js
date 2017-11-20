@@ -3,7 +3,7 @@ const dgram = require('dgram');
 //TCP
 const net = require('net');
 
-var SERVER_ADDRESS = "142.157.24.139";
+var SERVER_ADDRESS = "localhost";
 var SERVER_PORT = 80;
 
 var udp_socket = dgram.createSocket('udp4');

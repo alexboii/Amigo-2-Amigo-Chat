@@ -6,7 +6,7 @@ const net = require('net');
 const readline = require('readline');
 
 //Address of matchmaking/STUN server
-const SERVER_ADDRESS = "142.157.24.139";
+const SERVER_ADDRESS = "localhost";
 const SERVER_PORT = 80;
 
 //UDP socket used for communicating with server and keeping router hole open
@@ -27,6 +27,7 @@ let serverAck = false;
 //Information retrieved from STUN part of server to know what our address is
 var self_address;
 var self_port;
+var name ="Peer";
 
 //Information retrieved from matchmaking part of server to know what client we're talking to
 var peer_address;
@@ -56,6 +57,7 @@ udp_socket.on('message', (msg, rinfo) => {
             //If we receive an ACK from the other client, then we know we've successfully kept the UDP NAT hole punch open
             else if(msg.source_ip != SERVER_ADDRESS || msg.source_port != SERVER_PORT)
             {
+                peer_name = msg.peer_name;
                 ackd = NotifyAck(msg.id);
                 //Make keep alive function go back to sleep
             }
@@ -70,43 +72,47 @@ udp_socket.on('message', (msg, rinfo) => {
             connectToPeer(msg.peer_ip,msg.peer_port);
         break;
         case 'MSG':
-            console.log(`\nReceived: ${msg.msg}`);
+            console.log(`\n${msg.peer_name}: ${msg.msg}`);
             msgUpdate();        
         break;
         case 'SYN':
             //Acknowledge the keep alive signal
-            var ackSYN = {type:'ACK',source_ip:self_address,source_port:self_port, id:(msg.id + 1)};
+            var ackSYN = {type:'ACK',source_ip:self_address,source_port:self_port, id:(msg.id + 1), peer_name:name};
             udp_socket.send(Buffer.from(JSON.stringify(ackSYN)),peer_port,peer_address)
         break;
     }
   });
 let serverTimeout;
 udp_socket.on('listening', () => {
-    rl.question("Please input a matchmaking key: ", (answer) => {
-        var msg = {type:'REQ',msg:answer};
-        let attempts = 1;
-        udp_socket.send(Buffer.from(JSON.stringify(msg)),SERVER_PORT,SERVER_ADDRESS);        
-        serverTimeout = setInterval(() => {
-            if(attempts > 3)
-            {
-                console.log("Could not contact server");
-                process.exit();
-            }
-            else if(!serverAck)
-            {
-                console.log(`Attempting to contact server (Attempt ${attempts})`)
-                var syn_msg = {type:'SYN', id:rng_id}   
-                udp_socket.send(Buffer.from(JSON.stringify(msg)),SERVER_PORT,SERVER_ADDRESS);
-            }
-            else
-            {
-                console.log("Waiting for matchmaking");
-                serverAck = false;
-                clearInterval(serverTimeout);
-            }
-            attempts++;
-        }, 3000);
+    rl.question("What is your name:",(answer)=>{
+        name = answer;
+        rl.question("Please input a matchmaking key: ", (answer) => {
+            var msg = {type:'REQ',msg:answer};
+            let attempts = 1;
+            udp_socket.send(Buffer.from(JSON.stringify(msg)),SERVER_PORT,SERVER_ADDRESS);        
+            serverTimeout = setInterval(() => {
+                if(attempts > 3)
+                {
+                    console.log("Could not contact server");
+                    process.exit();
+                }
+                else if(!serverAck)
+                {
+                    console.log(`Attempting to contact server (Attempt ${attempts})`)
+                    var syn_msg = {type:'SYN', id:rng_id}   
+                    udp_socket.send(Buffer.from(JSON.stringify(msg)),SERVER_PORT,SERVER_ADDRESS);
+                }
+                else
+                {
+                    console.log("Waiting for matchmaking");
+                    serverAck = false;
+                    clearInterval(serverTimeout);
+                }
+                attempts++;
+            }, 3000);
+        });
     });
+    
 });
 
 udp_socket.bind();
@@ -137,6 +143,7 @@ var connectToPeer = function(address, port)
         else
         {
             clearInterval(initConnect);
+            console.log(`Connected to ${peer_name}`);
             //Once we've established a reliable UDP connection, we can start messaging
             msgUpdate();
         }
@@ -148,7 +155,7 @@ var msgUpdate =function()
 {
     rl.question(">", (answer) => {
         // TODO: Log the answer in a database
-        var msg = {type:'MSG',msg:answer};
+        var msg = {type:'MSG',msg:answer, peer_name:name};
         udp_socket.send(Buffer.from(JSON.stringify(msg)),peer_port,peer_address);
         msgUpdate();
     });
