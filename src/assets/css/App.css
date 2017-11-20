@@ -54,7 +54,7 @@ input {
   outline: 0;
 }
 input[type="text"]:focus {
-  box-shadow: 0 0 1pt 1pt #7986cb;
+  box-shadow: 0 0 3pt 2pt #323232;
 }
 .server-address-holder {
   display: flex;
