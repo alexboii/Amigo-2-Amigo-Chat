@@ -44,6 +44,10 @@ module.exports = {
           { loader: "file-loader?name=font/[name]__[hash:base64:5].[ext]" }
         ],
         include: defaultInclude
+      },
+      {
+        test: /\.svg$/,
+        loader: "svg-inline-loader"
       }
     ]
   },
