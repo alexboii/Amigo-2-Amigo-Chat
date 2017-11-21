@@ -1,19 +1,47 @@
 * {
   font-family: "Montserrat";
 }
+
 h1 {
   font-weight: 300;
   color: #f1f1f1;
 }
+
 h4 {
   font-weight: 200;
 }
+
 .img-circle {
   margin-top: 1em;
   margin-bottom: 1em;
   border-radius: 50%;
   width: 30%;
   box-shadow: 0 0 10px #323232;
+}
+.status {
+  transition: 300ms all ease;
+  opacity: 0;
+  will-change: opacity;
+}
+.show {
+  opacity: 1;
+}
+.example-enter {
+  opacity: 0.01;
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.example-leave {
+  opacity: 1;
+}
+
+.example-leave.example-leave-active {
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
 }
 .main {
   display: flex;

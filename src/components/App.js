@@ -5,6 +5,9 @@ import { UnmountClosed as Collapse } from "react-collapse";
 import * as SessionController from "../controllers/SessionController";
 import loading_svg from "../../node_modules/loading-svg/loading-balls.svg";
 import ReactLoading from "react-loading";
+import ReactCSSTransitionGroup from "react-addons-css-transition-group";
+import { CSSTransitionGroup } from "react-transition-group"; // ES6
+import ClientController from "../controllers/ClientController";
 
 const CSS_NAME = "button button--nuka button--round-s button--text-thick";
 
@@ -15,12 +18,19 @@ class App extends Component {
     this.state = {
       toggleNewToken: false,
       createSessionCSS: CSS_NAME,
-      randomToken: SessionController.getRandomInt(9999, 0),
-      statusMessage: ""
+      randomToken: SessionController.getRandomInt(9999, 1000),
+      statusMessage: "",
+      messageCSS: false
     };
 
     this.setMessage = this.setMessage.bind(this);
     this.onRandomTockenToggle = this.onRandomTockenToggle.bind(this);
+
+    this.clientController = new ClientController(
+      "142.157.24.139",
+      80,
+      this.setMessage
+    );
   }
 
   componentDidMount() {
@@ -28,13 +38,21 @@ class App extends Component {
     // TODO: Perhaps, if time, refactor loading message into own component
     // TODO: Disable create session and join session buttons
     this.setMessage("Attempting to connect to server");
+    this.clientController.startSocketListeners();
+    this.toggleMessageVisibility("SHOW");
   }
 
   setMessage(message) {
     this.setState({ statusMessage: message });
   }
 
+  toggleMessageVisibility(visibility) {
+    this.setState({ messageCSS: true });
+  }
+
   onRandomTockenToggle() {
+    this.toggleMessageVisibility("SHOW");
+
     this.setState({ toggleNewToken: !this.state.toggleNewToken });
 
     this.setState({
@@ -48,6 +66,8 @@ class App extends Component {
         randomToken: SessionController.getRandomInt(9999, 1000)
       });
     }
+
+    this.clientController.startListening(this.state.randomToken);
   }
 
   render() {
@@ -55,9 +75,15 @@ class App extends Component {
       <div className="main">
         {header()}
         <div className="server-address-holder">
-          <div class="loader">
+          <div className="loader">
             <ReactLoading type={"bubbles"} />
-            <span textColor={"#50C878"}>{this.state.statusMessage}</span>
+            <CSSTransitionGroup
+              transitionName="example"
+              transitionEnterTimeout={500}
+              transitionLeaveTimeout={300}
+            >
+              <span textColor={"#50C878"}>{this.state.statusMessage}</span>
+            </CSSTransitionGroup>
           </div>
           <input type="text" placeholder="Server Address & Port" />
         </div>

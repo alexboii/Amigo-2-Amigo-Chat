@@ -39,10 +39,13 @@
   },
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.6",
+    "eslint-config-airbnb": "^16.1.0",
     "loading-svg": "^1.0.0",
     "react": "^16.1.1",
+    "react-addons-css-transition-group": "^15.6.2",
     "react-collapse": "^4.0.3",
     "react-loading": "^1.0.1",
-    "react-motion": "^0.5.2"
+    "react-motion": "^0.5.2",
+    "react-transition-group": "^1.2.1"
   }
 }
