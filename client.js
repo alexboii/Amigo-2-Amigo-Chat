@@ -53,16 +53,10 @@ udp_socket.on("message", (msg, rinfo) => {
         connectToPeer(msg.peer_ip, msg.peer_port);
       } else if (rinfo.address != SERVER_ADDRESS || rinfo.port != SERVER_PORT) {
         //If we receive an ACK from the other client, then we know we've successfully kept the UDP NAT hole punch open
-        console.log(
-          `Receive message from ${rinfo.address}:${rinfo.port} of type ${msg.type} wtf we think it's a client`
-        );
         peer_name = msg.peer_name;
         ackd = NotifyAck(msg.id);
         //Make keep alive function go back to sleep
       } else {
-        console.log(
-          `Receive message from ${rinfo.address} of type ${msg.type}`
-        );
         //ACK from server
         serverAck = true;
       }
