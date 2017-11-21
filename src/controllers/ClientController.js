@@ -2,10 +2,9 @@ import dgram from "dgram";
 import net from "net";
 
 class ClientController {
-  constructor(serverAddress, serverPort, statusCallback) {
+  constructor(serverAddress, serverPort, statusCallback, udpSocket) {
     this.serverAddress = serverAddress;
     this.serverPort = serverPort;
-    this.udpSocket = dgram.createSocket("udp4");
     this.statusCallback = statusCallback;
 
     this.rngId = 0;
@@ -15,6 +14,8 @@ class ClientController {
 
     this.selfAddress;
     this.selfPort;
+
+    this.udpSocket = udpSocket;
 
     this.peerAddress;
     this.peerPort;
@@ -44,7 +45,7 @@ class ClientController {
           if (msg.peer_ip) {
             //Message from server
             this.serverAck = true;
-            connectToPeer(msg.peer_ip, msg.peer_port);
+            this.connectToPeer(msg.peer_ip, msg.peer_port);
           } else if (
             msg.source_ip != this.serverAddress ||
             msg.source_port != this.serverPort
@@ -59,7 +60,7 @@ class ClientController {
 
           break;
         case "CON":
-          connectToPeer(msg.peer_ip, msg.peer_port);
+          this.connectToPeer(msg.peer_ip, msg.peer_port);
           break;
         case "MSG":
           this.statusCallback(`Received: ${msg.msg}`);
@@ -82,6 +83,38 @@ class ClientController {
       }
     });
 
+    this.udpSocket.on("listening", () => {
+      var msg = { type: "REQ", msg: 495 };
+      let attempts = 1;
+      console.log("bro");
+      console.debug();
+      this.udpSocket.send(
+        Buffer.from(JSON.stringify(msg)),
+        this.serverPort,
+        this.serverAddress
+      );
+      this.serverTimeout = setInterval(() => {
+        if (attempts > 3) {
+          this.statusCallback("Could not contact server");
+        } else if (!this.serverAck) {
+          this.statusCallback(
+            `Attempting to contact server (Attempt ${attempts})`
+          );
+          var syn_msg = { type: "SYN", id: this.rngId };
+          this.udpSocket.send(
+            Buffer.from(JSON.stringify(msg)),
+            this.serverPort,
+            this.serverAddress
+          );
+        } else {
+          this.statusCallback("Waiting for matchmaking");
+          this.serverAck = false;
+          clearInterval(this.serverTimeout);
+        }
+        attempts++;
+      }, 3000);
+    });
+
     try {
       this.udpSocket.bind();
       console.log(this.udpSocket);
@@ -93,7 +126,7 @@ class ClientController {
   }
 
   listening(randomToken, self) {
-    var msg = { type: "REQ", msg: self.randomToken };
+    var msg = { type: "REQ", msg: this.randomToken };
     let attempts = 1;
     console.log("bro");
     console.debug();
@@ -124,7 +157,7 @@ class ClientController {
     }, 3000);
   }
 
-  startListening(randomToken) {
+  startListening(randomToken, newSocket) {
     console.log("state");
 
     this.randomToken = randomToken;
@@ -134,11 +167,13 @@ class ClientController {
       this.listening(randomToken, this);
     };
 
-    console.log(this.udpSocket);
+    console.log(newSocket);
 
     try {
       // TODO: Figure out why this doesn't work
-      this.udpSocket.on("listening", this.listening(randomToken, this));
+      newSocket.bind(() => {
+        this.listening(randomToken, newSocket);
+      });
     } catch (e) {}
   }
 

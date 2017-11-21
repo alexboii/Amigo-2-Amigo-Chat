@@ -8,6 +8,8 @@ import ReactLoading from "react-loading";
 import ReactCSSTransitionGroup from "react-addons-css-transition-group";
 import { CSSTransitionGroup } from "react-transition-group"; // ES6
 import ClientController from "../controllers/ClientController";
+import dgram from "dgram";
+import net from "net";
 
 const CSS_NAME = "button button--nuka button--round-s button--text-thick";
 
@@ -25,11 +27,13 @@ class App extends Component {
 
     this.setMessage = this.setMessage.bind(this);
     this.onRandomTockenToggle = this.onRandomTockenToggle.bind(this);
+    this.udpSocket = dgram.createSocket("udp4");
 
     this.clientController = new ClientController(
-      "142.157.24.139",
-      80,
-      this.setMessage
+      "13.82.236.21",
+      8080,
+      this.setMessage,
+      this.udpSocket
     );
   }
 
@@ -38,7 +42,7 @@ class App extends Component {
     // TODO: Perhaps, if time, refactor loading message into own component
     // TODO: Disable create session and join session buttons
     this.setMessage("Attempting to connect to server");
-    this.clientController.startSocketListeners();
+
     this.toggleMessageVisibility("SHOW");
   }
 
@@ -67,7 +71,7 @@ class App extends Component {
       });
     }
 
-    this.clientController.startListening(this.state.randomToken);
+    this.clientController.startSocketListeners();
   }
 
   render() {
