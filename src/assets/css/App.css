@@ -290,3 +290,113 @@ h4 {
 .cross-fade-height {
   transition: height 0.5s ease-in-out;
 }
+
+.chat-bubble {
+  display: inline-block;
+  padding: 5px 10px;
+  background: #323232;
+  border-radius: 0.25em;
+  max-width: 500px;
+  vertical-align: middle;
+  margin-top: 20px;
+}
+
+.left {
+  position: relative;
+  background: #323232;
+}
+
+.left:after {
+  right: 100%;
+  bottom: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-right-color: #323232;
+  border-width: 5px;
+  margin-top: -5px;
+}
+
+.right {
+  position: relative;
+  background: #323232;
+}
+
+.m-b-0 {
+  margin-bottom: 5px;
+  margin-top: 5px;
+  text-align: left;
+}
+
+.right:after {
+  left: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-left-color: #323232;
+  border-width: 5px;
+  margin-top: -5px;
+}
+
+.my-message {
+  margin-left: 15px;
+}
+
+conversation-holder {
+  display: flex;
+}
+
+.chat-wrapper {
+  display: flex;
+  height: 90vh;
+  padding: 10px;
+  flex-direction: column-reverse;
+  width: 98%;
+}
+
+.chat-content-left {
+  display: table-cell;
+  width: 100%;
+  margin-top: 20px;
+  vertical-align: bottom;
+}
+
+.peer-message {
+  direction: rtl;
+  margin-right: 15px;
+}
+
+.form-control {
+  background-color: #444;
+  border: none;
+}
+.chat-input {
+  float: left;
+  width: calc(100% - 200px);
+}
+
+.img-circle-peer {
+  flex: 0.2;
+  vertical-align: middle;
+  margin-left: 30px;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border-radius: 50%;
+  width: 30%;
+  box-shadow: 0 0 10px #323232;
+  background-color: #222;
+}
+
+.input-holder {
+  width: 100%;
+  margin-left: 30px;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}

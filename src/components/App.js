@@ -14,6 +14,7 @@ import { Notification } from "react-notification";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import TextField from "material-ui/TextField";
 import ReactCSSTransitionReplace from "react-css-transition-replace";
+import { List, ListItem } from "material-ui/List";
 
 const CSS_NAME = "button button--nuka button--round-s button--text-thick";
 
@@ -23,6 +24,7 @@ class App extends Component {
 
     this.state = {
       toggleNewToken: false,
+      messages: [],
       toggleSessionToken: false,
       createSessionCSS: CSS_NAME,
       joinSessionCSS: CSS_NAME,
@@ -31,6 +33,8 @@ class App extends Component {
       messageCSS: false,
       serverAddress: "13.82.236.21",
       serverPort: 8080,
+      peerImage:
+        "http://www.clker.com/cliparts/v/E/3/d/S/m/silhouette-male-grey-hi.png",
       userImage:
         "https://www.materialui.co/materialIcons/file/cloud_upload_grey_192x192.png"
     };
@@ -41,11 +45,15 @@ class App extends Component {
     this.onRandomTokenToggle = this.onRandomTokenToggle.bind(this);
     this.onSessionTokenToggle = this.onSessionTokenToggle.bind(this);
     this.setServerIp = this.setServerIp.bind(this);
+    this.setPeerImage = this.setPeerImage.bind(this);
+    this.addNewMessage = this.addNewMessage.bind(this);
 
     this.clientController = new ClientController(
       this.state.serverAddress,
       this.state.serverPort,
-      this.setMessage
+      this.setMessage,
+      this.setPeerImage,
+      this.addNewMessage
     );
   }
 
@@ -65,6 +73,14 @@ class App extends Component {
 
   toggleMessageVisibility(visibility) {
     this.setState({ messageCSS: false });
+  }
+
+  setPeerImage(image) {
+    this.setState({ peerImage: image ? image : this.state.peerImage });
+  }
+
+  addNewMessage(message) {
+    this.setState({ messages: [...this.state.messages, message] });
   }
 
   onSessionTokenToggle() {
@@ -175,9 +191,44 @@ class App extends Component {
   }
 
   render() {
+    const messageItems = () => {
+      this.state.messages.map(message => {
+        if (message.type === "OWN") {
+          return (
+            <div className="my-message">
+              <Avatar
+                size={70}
+                src={this.state.userImage}
+                className={"img-circle"}
+              />
+
+              <div className="chat-bubble left">
+                <p className="m-b-0">{message.body}</p>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="peer-message">
+            <Avatar
+              size={70}
+              src={this.state.peerImage}
+              className={"img-circle-peer"}
+            />{" "}
+            <div className="chat-bubble right">
+              <p className="m-b-0">{message.body}</p>
+            </div>
+          </div>
+        );
+      });
+    };
+
+    const { statusMessage } = this.state;
+
     return (
       <div className="main">
-        {this.state.statusMessage !== "Connected to peer" && (
+        {statusMessage !== "Connected to peer" && (
           <div className="main" key="login">
             {header()}
             <div className="server-address-holder">
@@ -263,7 +314,7 @@ class App extends Component {
                       className={"input-box"}
                       type="text"
                       value={this.state.randomToken}
-                      placeholder="Token ID"
+                      placeholder="4 Digit Token ID"
                     />
                   </div>
                 </Collapse>
@@ -282,7 +333,7 @@ class App extends Component {
                         }
                       }}
                       type="text"
-                      placeholder="Token ID"
+                      placeholder="4 Digit Token ID"
                     />
                   </div>
                 </Collapse>
@@ -291,19 +342,61 @@ class App extends Component {
           </div>
         )}
 
-        {this.state.statusMessage === "Connected to peer" && (
+        {statusMessage === "Connected to peer" && (
           // TODO: Figure out this stupid transition
-          <ReactCSSTransitionGroup
-            component="div"
-            className="cross-fade"
-            transitionName="cross-fade"
-            transitionEnter={true}
-            transitionEnterTimeout={1000}
-            transitionLeave={true}
-            transitionLeaveTimeout={1000}
-          >
-            <div key="cross-fade"> test </div>
-          </ReactCSSTransitionGroup>
+          <div style={{ width: "100%" }}>
+            <div className="chat-wrapper">
+              <MuiThemeProvider>
+                <div>
+                  {this.state.messages.map(message => {
+                    if (message.type === "OWN") {
+                      return (
+                        <div className="my-message">
+                          <Avatar
+                            size={70}
+                            src={this.state.userImage}
+                            className={"img-circle"}
+                          />
+
+                          <div className="chat-bubble left">
+                            <p className="m-b-0">{message.body}</p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="peer-message">
+                        <Avatar
+                          size={70}
+                          src={this.state.peerImage}
+                          className={"img-circle-peer"}
+                        />{" "}
+                        <div className="chat-bubble right">
+                          <p className="m-b-0">{message.body}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </MuiThemeProvider>
+            </div>
+            <div className={"input-holder"}>
+              <span class="chat-input">
+                <input
+                  class="input-box"
+                  type="text"
+                  onKeyPress={e => {
+                    if (e.key === "Enter") {
+                      this.addNewMessage({ type: "OWN", body: e.target.value });
+                    }
+
+                    this.clientController.msgUpdate(e.target.value);
+                  }}
+                />
+              </span>
+            </div>
+          </div>
         )}
       </div>
     );

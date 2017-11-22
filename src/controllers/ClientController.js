@@ -2,11 +2,19 @@ import dgram from "dgram";
 import net from "net";
 
 class ClientController {
-  constructor(serverAddress, serverPort, statusCallback) {
+  constructor(
+    serverAddress,
+    serverPort,
+    statusCallback,
+    peerImageCallback,
+    addMessageCallback
+  ) {
     this._serverAddress = serverAddress;
     this._serverPort = serverPort;
     this._udpSocket;
     this.statusCallback = statusCallback;
+    this.peerImageCallback = peerImageCallback;
+    this.addMessageCallback = addMessageCallback;
 
     this.rngId = 0;
     this.timeoutHandle;
@@ -18,8 +26,8 @@ class ClientController {
 
     this._name;
     this._avatar;
-    this.peerName;
-    this.peerAvatar;
+    this._peerName;
+    this._peerAvatar;
 
     this.peerAddress;
     this.peerPort;
@@ -60,6 +68,7 @@ class ClientController {
             rinfo.port !== this._serverPort
           ) {
             this._peerName = msg.peer_name;
+            this.peerImageCallback(msg.peer_avatar);
             this._peerAvatar = msg.peer_avatar;
             //If we receive an ACK from the other client, then we know we've successfullserverTimey kept the UDP NAT hole punch open
             this.ackd = this.notifyAck(msg.id);
@@ -74,8 +83,9 @@ class ClientController {
           this.connectToPeer(msg.peer_ip, msg.peer_port);
           break;
         case "MSG":
-          this.statusCallback(`${msg.peer_name}: ${msg.msg}`);
-          this.msgUpdate();
+          // this.statusCallback(`${msg.peer_name}: ${msg.msg}`);
+          this.addMessageCallback({ type: "PEER", body: msg.msg });
+
           break;
         case "SYN":
           //Acknowledge the keep alive signal
@@ -188,20 +198,17 @@ class ClientController {
         clearInterval(initConnect);
         this.statusCallback("Connected to peer");
         //Once we've established a reliable UDP connection, we can start messaging
-        this.msgUpdate();
       }
     }, 3000);
   }
 
-  msgUpdate() {
+  msgUpdate(message) {
     // TODO: Log the answer in a database
-    var msg = { type: "MSG", msg: answer };
     this._udpSocket.send(
       Buffer.from(JSON.stringify(msg)),
       this.peerPort,
       this.peerAddress
     );
-    // this.msgUpdate();
   }
 
   keepAlive() {
@@ -266,6 +273,14 @@ class ClientController {
 
   set avatar(newAvatar) {
     this._avatar = newAvatar;
+  }
+
+  set peerName(newName) {
+    this._peerName = newName;
+  }
+
+  set peerAvatar(newAvatar) {
+    this._peerAvatar = newAvatar;
   }
 
   get udpSocket() {
