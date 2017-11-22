@@ -1,5 +1,6 @@
 import filippo_image from "../assets/images/filippo_image.jpg";
 import React, { Component, Button } from "react";
+import dgram from "dgram";
 import "../assets/css/App.css";
 import { UnmountClosed as Collapse } from "react-collapse";
 import * as SessionController from "../controllers/SessionController";
@@ -20,15 +21,20 @@ class App extends Component {
       createSessionCSS: CSS_NAME,
       randomToken: SessionController.getRandomInt(9999, 1000),
       statusMessage: "",
-      messageCSS: false
+      messageCSS: false,
+      serverAddress: "13.82.236.21",
+      serverPort: 8080
     };
+
+    this.udpSocket = dgram.createSocket("udp4");
 
     this.setMessage = this.setMessage.bind(this);
     this.onRandomTockenToggle = this.onRandomTockenToggle.bind(this);
+    this.setServerIp = this.setServerIp.bind(this);
 
     this.clientController = new ClientController(
-      "142.157.24.139",
-      80,
+      this.state.serverAddress,
+      this.state.serverPort,
       this.setMessage
     );
   }
@@ -38,7 +44,6 @@ class App extends Component {
     // TODO: Perhaps, if time, refactor loading message into own component
     // TODO: Disable create session and join session buttons
     this.setMessage("Attempting to connect to server");
-    this.clientController.startSocketListeners();
     this.toggleMessageVisibility("SHOW");
   }
 
@@ -51,6 +56,11 @@ class App extends Component {
   }
 
   onRandomTockenToggle() {
+    if (!this.validateServerAddress()) {
+      this.setMessage("Invalid server address");
+      return;
+    }
+
     this.toggleMessageVisibility("SHOW");
 
     this.setState({ toggleNewToken: !this.state.toggleNewToken });
@@ -61,13 +71,39 @@ class App extends Component {
         : CSS_NAME
     });
 
+    this.serverAddress;
+
+    const randomBuff = SessionController.getRandomInt(9999, 1000);
+
     if (!this.state.toggleNewToken) {
       this.setState({
-        randomToken: SessionController.getRandomInt(9999, 1000)
+        randomToken: randomBuff
       });
     }
 
-    this.clientController.startListening(this.state.randomToken);
+    this.clientController.serverAddress = this.state.serverAddress;
+    this.clientController.serverPort = parseInt(this.state.serverPort);
+
+    this.clientController.startSocketListeners(this.udpSocket, randomBuff);
+  }
+
+  validateServerAddress() {
+    console.log(`${this.state.serverAddress}:${this.state.serverPort}`);
+
+    return /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})$/.test(
+      `${this.state.serverAddress}:${this.state.serverPort}`
+    );
+  }
+
+  setServerIp(e) {
+    const addressBuffer = e.target.value.split(":");
+
+    console.log(addressBuffer);
+
+    this.setState({
+      serverAddress: addressBuffer[0],
+      serverPort: addressBuffer[1]
+    });
   }
 
   render() {
@@ -85,7 +121,12 @@ class App extends Component {
               <span textColor={"#50C878"}>{this.state.statusMessage}</span>
             </CSSTransitionGroup>
           </div>
-          <input type="text" placeholder="Server Address & Port" />
+          <input
+            value={this.state.serverAddress + ":" + this.state.serverPort}
+            type="text"
+            placeholder="Server Address & Port"
+            onChange={this.setServerIp}
+          />
         </div>
         <div className="session-holder">
           <div className="button-holder">
