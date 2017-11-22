@@ -2,9 +2,10 @@ import dgram from "dgram";
 import net from "net";
 
 class ClientController {
-  constructor(serverAddress, serverPort, statusCallback, udpSocket) {
-    this.serverAddress = serverAddress;
-    this.serverPort = serverPort;
+  constructor(serverAddress, serverPort, statusCallback) {
+    this._serverAddress = serverAddress;
+    this._serverPort = serverPort;
+    this._udpSocket;
     this.statusCallback = statusCallback;
 
     this.rngId = 0;
@@ -15,7 +16,10 @@ class ClientController {
     this.selfAddress;
     this.selfPort;
 
-    this.udpSocket = udpSocket;
+    this._name;
+    this._avatar;
+    this.peerName;
+    this.peerAvatar;
 
     this.peerAddress;
     this.peerPort;
@@ -23,23 +27,28 @@ class ClientController {
     this.randomToken;
   }
 
-  startSocketListeners() {
+  startSocketListeners(socket, randomToken) {
     console.log("Am I here");
+
+    this._udpSocket = socket;
 
     console.log(this.statusCallback);
 
-    this.udpSocket.on("error", err => {
+    this._udpSocket.on("error", err => {
       this.statusCallback(`client error:\n${err.stack}`);
-      this.udpSocket.close();
+      this._udpSocket.close();
     });
 
-    this.udpSocket.on("message", (msg, rinfo) => {
+    this._udpSocket.on("message", (msg, rinfo) => {
       try {
         msg = JSON.parse(msg);
       } catch (e) {
         this.statusCallback(`! Couldn\'t parse message ${e} :\n`);
         return;
       }
+
+      console.log(rinfo.address);
+
       switch (msg.type) {
         case "ACK":
           if (msg.peer_ip) {
@@ -47,11 +56,13 @@ class ClientController {
             this.serverAck = true;
             this.connectToPeer(msg.peer_ip, msg.peer_port);
           } else if (
-            msg.source_ip != this.serverAddress ||
-            msg.source_port != this.serverPort
+            rinfo.address !== this._serverAddress ||
+            rinfo.port !== this._serverPort
           ) {
+            this._peerName = msg.peer_name;
+            this._peerAvatar = msg.peer_avatar;
             //If we receive an ACK from the other client, then we know we've successfullserverTimey kept the UDP NAT hole punch open
-            this.ackd = notifyAck(msg.id);
+            this.ackd = this.notifyAck(msg.id);
             //Make keep alive function go back to sleep
           } else {
             //ACK from server
@@ -63,8 +74,8 @@ class ClientController {
           this.connectToPeer(msg.peer_ip, msg.peer_port);
           break;
         case "MSG":
-          this.statusCallback(`Received: ${msg.msg}`);
-          msgUpdate();
+          this.statusCallback(`${msg.peer_name}: ${msg.msg}`);
+          this.msgUpdate();
           break;
         case "SYN":
           //Acknowledge the keep alive signal
@@ -72,9 +83,11 @@ class ClientController {
             type: "ACK",
             source_ip: this.selfAddress,
             source_port: this.selfPort,
-            id: msg.id + 1
+            id: msg.id + 1,
+            peer_name: this._name,
+            peer_avatar: this._avatar
           };
-          this.udpSocket.send(
+          this._udpSocket.send(
             Buffer.from(JSON.stringify(ackSYN)),
             this.peerPort,
             this.peerAddress
@@ -83,41 +96,12 @@ class ClientController {
       }
     });
 
-    this.udpSocket.on("listening", () => {
-      var msg = { type: "REQ", msg: 495 };
-      let attempts = 1;
-      console.log("bro");
-      console.debug();
-      this.udpSocket.send(
-        Buffer.from(JSON.stringify(msg)),
-        this.serverPort,
-        this.serverAddress
-      );
-      this.serverTimeout = setInterval(() => {
-        if (attempts > 3) {
-          this.statusCallback("Could not contact server");
-        } else if (!this.serverAck) {
-          this.statusCallback(
-            `Attempting to contact server (Attempt ${attempts})`
-          );
-          var syn_msg = { type: "SYN", id: this.rngId };
-          this.udpSocket.send(
-            Buffer.from(JSON.stringify(msg)),
-            this.serverPort,
-            this.serverAddress
-          );
-        } else {
-          this.statusCallback("Waiting for matchmaking");
-          this.serverAck = false;
-          clearInterval(this.serverTimeout);
-        }
-        attempts++;
-      }, 3000);
-    });
+    console.log(randomToken);
+    this._udpSocket.on("listening", () => this.listening(randomToken, this));
 
     try {
-      this.udpSocket.bind();
-      console.log(this.udpSocket);
+      this._udpSocket.bind();
+      console.log(this._udpSocket);
       this.statusCallback("here");
     } catch (e) {
       console.log("here");
@@ -126,14 +110,13 @@ class ClientController {
   }
 
   listening(randomToken, self) {
-    var msg = { type: "REQ", msg: this.randomToken };
+    var msg = { type: "REQ", msg: randomToken };
     let attempts = 1;
     console.log("bro");
-    console.debug();
-    this.udpSocket.send(
+    this._udpSocket.send(
       Buffer.from(JSON.stringify(msg)),
-      this.serverPort,
-      this.serverAddress
+      this._serverPort,
+      this._serverAddress
     );
     this.serverTimeout = setInterval(() => {
       if (attempts > 3) {
@@ -143,10 +126,10 @@ class ClientController {
           `Attempting to contact server (Attempt ${attempts})`
         );
         var syn_msg = { type: "SYN", id: this.rngId };
-        this.udpSocket.send(
+        this._udpSocket.send(
           Buffer.from(JSON.stringify(msg)),
-          this.serverPort,
-          this.serverAddress
+          this._serverPort,
+          this._serverAddress
         );
       } else {
         this.statusCallback("Waiting for matchmaking");
@@ -161,7 +144,7 @@ class ClientController {
     console.log("state");
 
     this.randomToken = randomToken;
-    console.log(this.udpSocket);
+    console.log(this._udpSocket);
 
     let test = caller => {
       this.listening(randomToken, this);
@@ -180,10 +163,12 @@ class ClientController {
   connectToPeer(address, port) {
     this.statusCallback(`Connecting to peer ${address}:${port}`);
 
-    keepAlive();
+    this.keepAlive();
 
     this.peerAddress = address;
     this.peerPort = port;
+
+    console.log(this.peerPort, port);
 
     let attempts = 0;
     this.ackd = false;
@@ -194,30 +179,29 @@ class ClientController {
         this.statusCallback("Could not connect to peer");
       } else if (!this.ackd) {
         var syn_msg = { type: "SYN", id: this.rngId };
-        this.udpSocket.send(
+        this._udpSocket.send(
           Buffer.from(JSON.stringify(syn_msg)),
           this.peerPort,
           this.peerAddress
         );
       } else {
         clearInterval(initConnect);
+        this.statusCallback("Connected to peer");
         //Once we've established a reliable UDP connection, we can start messaging
-        msgUpdate();
+        this.msgUpdate();
       }
     }, 3000);
   }
 
   msgUpdate() {
-    rl.question(">", answer => {
-      // TODO: Log the answer in a database
-      var msg = { type: "MSG", msg: answer };
-      this.udpSocket.send(
-        Buffer.from(JSON.stringify(msg)),
-        peer_port,
-        peer_address
-      );
-      msgUpdate();
-    });
+    // TODO: Log the answer in a database
+    var msg = { type: "MSG", msg: answer };
+    this._udpSocket.send(
+      Buffer.from(JSON.stringify(msg)),
+      this.peerPort,
+      this.peerAddress
+    );
+    // this.msgUpdate();
   }
 
   keepAlive() {
@@ -233,7 +217,7 @@ class ClientController {
         this.statusCallback("Other client disconnected");
       }
 
-      this.udpSocket.send(
+      this._udpSocket.send(
         Buffer.from(JSON.stringify(syn_msg)),
         this.peerPort,
         this.peerAddress
@@ -254,10 +238,42 @@ class ClientController {
     }
 
     this.timeoutHandle = setInterval(() => {
-      keepAlive();
+      this.keepAlive();
     }, 15000);
 
     return true;
+  }
+
+  set serverAddress(newAddress) {
+    this._serverAddress = newAddress;
+  }
+
+  get serverAddress() {
+    return this._serverAddress;
+  }
+
+  set serverPort(newPort) {
+    this._serverPort = newPort;
+  }
+
+  get serverAddress() {
+    return this._serverPort;
+  }
+
+  set name(newName) {
+    this._name = newName;
+  }
+
+  set avatar(newAvatar) {
+    this._avatar = newAvatar;
+  }
+
+  get udpSocket() {
+    return this._udpSocket;
+  }
+
+  set udpSocket(newUdpSocket) {
+    this._udpSocket = newUdpSocket;
   }
 }
 

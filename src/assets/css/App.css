@@ -11,13 +11,32 @@ h4 {
   font-weight: 200;
 }
 
+.file-user-holder {
+  display: flex;
+  flex-direction: row;
+}
+
 .img-circle {
+  flex: 0.2;
+  vertical-align: middle;
+  margin-right: 30px;
   margin-top: 1em;
   margin-bottom: 1em;
   border-radius: 50%;
   width: 30%;
   box-shadow: 0 0 10px #323232;
+  background-color: #222;
 }
+
+.image-upload > input {
+  display: none;
+  box-shadow: 0 0 10px #323232;
+}
+
+.image-upload img {
+  cursor: pointer;
+}
+
 .status {
   transition: 300ms all ease;
   opacity: 0;
@@ -28,6 +47,10 @@ h4 {
 }
 .example-enter {
   opacity: 0.01;
+}
+
+.status-message {
+  margin-top: 30px;
 }
 
 .example-enter.example-enter-active {
@@ -66,6 +89,7 @@ h4 {
 }
 .session-holder {
   flex: 1;
+  margin-top: 40px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -85,7 +109,7 @@ h4 {
   justify-content: center;
 }
 
-input {
+.input-box {
   border: 2px solid #ccc !important;
   height: 35px;
   border-radius: 10px;
@@ -95,7 +119,7 @@ input {
   text-align: center;
   outline: 0;
 }
-input[type="text"]:focus {
+.input-box[type="text"]:focus {
   box-shadow: 0 0 3pt 2pt #323232;
 }
 .server-address-holder {
@@ -245,4 +269,24 @@ input[type="text"]:focus {
 .button--nuka.active::before {
   -webkit-transform: scale3d(1, 1, 1);
   transform: scale3d(1, 1, 1);
+}
+
+.cross-fade-leave {
+  opacity: 1;
+}
+.cross-fade-leave.cross-fade-leave-active {
+  opacity: 0;
+  transition: opacity 1s ease-in;
+}
+
+.cross-fade-enter {
+  opacity: 0;
+}
+.cross-fade-enter.cross-fade-enter-active {
+  opacity: 1;
+  transition: opacity 1s ease-in;
+}
+
+.cross-fade-height {
+  transition: height 0.5s ease-in-out;
 }

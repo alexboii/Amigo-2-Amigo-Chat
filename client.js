@@ -51,10 +51,7 @@ udp_socket.on("message", (msg, rinfo) => {
         //Message from server
         serverAck = true;
         connectToPeer(msg.peer_ip, msg.peer_port);
-      } else if (
-        msg.source_ip != SERVER_ADDRESS ||
-        msg.source_port != SERVER_PORT
-      ) {
+      } else if (rinfo.address != SERVER_ADDRESS || rinfo.port != SERVER_PORT) {
         //If we receive an ACK from the other client, then we know we've successfully kept the UDP NAT hole punch open
         peer_name = msg.peer_name;
         ackd = NotifyAck(msg.id);
@@ -127,7 +124,7 @@ udp_socket.on("listening", () => {
 udp_socket.bind();
 
 var connectToPeer = function(address, port) {
-  console.log(`Connecting to peer ${address}:${port}`);
+  //    console.log(`Connecting to peer ${address}:${port}`);
   KeepAlive();
 
   peer_address = address;
@@ -199,6 +196,6 @@ function NotifyAck(id) {
 
   timeoutHandle = setInterval(() => {
     KeepAlive();
-  }, 15000);
+  }, 1000);
   return true;
 }
