@@ -61,7 +61,6 @@ class App extends Component {
     // TODO: Add fade in, fade out
     // TODO: Perhaps, if time, refactor loading message into own component
     // TODO: Disable create session and join session buttons
-    this.setMessage("Attempting to connect to server");
     this.toggleMessageVisibility("HIDE");
   }
 
@@ -271,7 +270,11 @@ class App extends Component {
                   transitionEnterTimeout={1000}
                   transitionLeaveTimeout={1000}
                 >
-                  <span>{this.state.statusMessage}</span>
+                  {this.state.statusMessage &&
+                    this.state.statusMessage !==
+                      "Other client disconnected" && (
+                      <ReactLoading type={"bubbles"} />
+                    )}
 
                   {/* <div className={"status-message"}>
                 <ReactLoading type={"bubbles"} />
@@ -341,10 +344,9 @@ class App extends Component {
             </div>
           </div>
         )}
-
         {statusMessage === "Connected to peer" && (
           // TODO: Figure out this stupid transition
-          <div style={{ width: "100%" }}>
+          <div className={"conversation-holder"}>
             <div className="chat-wrapper">
               <MuiThemeProvider>
                 <div>
@@ -353,7 +355,7 @@ class App extends Component {
                       return (
                         <div className="my-message">
                           <Avatar
-                            size={70}
+                            size={60}
                             src={this.state.userImage}
                             className={"img-circle"}
                           />
@@ -368,7 +370,7 @@ class App extends Component {
                     return (
                       <div className="peer-message">
                         <Avatar
-                          size={70}
+                          size={60}
                           src={this.state.peerImage}
                           className={"img-circle-peer"}
                         />{" "}
@@ -381,17 +383,28 @@ class App extends Component {
                 </div>
               </MuiThemeProvider>
             </div>
+            <div class="cover-bar" />
+
             <div className={"input-holder"}>
               <span class="chat-input">
                 <input
-                  class="input-box"
+                  ref="chatInput"
+                  placeholder={"Enter text"}
+                  className={"chat-text-input"}
                   type="text"
                   onKeyPress={e => {
                     if (e.key === "Enter") {
-                      this.addNewMessage({ type: "OWN", body: e.target.value });
-                    }
+                      if (e.target.value) {
+                        this.clientController.msgUpdate(e.target.value);
 
-                    this.clientController.msgUpdate(e.target.value);
+                        this.addNewMessage({
+                          type: "OWN",
+                          body: e.target.value
+                        });
+                        
+                        this.refs.chatInput.value = "";
+                      }
+                    }
                   }}
                 />
               </span>

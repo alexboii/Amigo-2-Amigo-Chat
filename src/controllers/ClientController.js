@@ -205,7 +205,7 @@ class ClientController {
   msgUpdate(message) {
     // TODO: Log the answer in a database
     this._udpSocket.send(
-      Buffer.from(JSON.stringify(msg)),
+      Buffer.from(JSON.stringify({ type: "MSG", msg: message })),
       this.peerPort,
       this.peerAddress
     );
