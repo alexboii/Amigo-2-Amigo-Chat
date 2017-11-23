@@ -22,12 +22,16 @@ if (
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    title: "Philippo-2-Philippo",
+    title: "Amigo-2-Amigo",
     width: 1024,
     height: 768,
     backgroundColor: "#222",
-    center: true
+    center: true,
+    resizable: false,
+    autoHideMenuBar: true
   });
+
+  mainWindow.setTitle("Amigo-2-Amigo");
 
   // and load the index.html of the app.
   let indexPath;

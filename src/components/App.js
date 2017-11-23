@@ -15,6 +15,14 @@ import ReactCSSTransitionReplace from "react-css-transition-replace";
 import { List, ListItem } from "material-ui/List";
 import imgur from "imgur";
 
+// TODO: Add emoji
+// TODO: Add message timestamp (collapsable on image click)
+// TODO: Add validation
+// TODO: Add errors
+// TODO: Refactor list item into own component
+// TODO: Refactor chat into own component
+// TODO: Figure out transitions?
+
 const CSS_NAME = "button button--nuka button--round-s button--text-thick";
 
 class App extends Component {
@@ -60,17 +68,14 @@ class App extends Component {
     // TODO: Add fade in, fade out
     // TODO: Perhaps, if time, refactor loading message into own component
     // TODO: Disable create session and join session buttons
-    this.toggleMessageVisibility("HIDE");
+    this.clientController.avatar = this.state.peerImage;
+    document.title = "Amigo-2-Amigo";
   }
 
   setMessage(message) {
     this.setState({
       statusMessage: message
     });
-  }
-
-  toggleMessageVisibility(visibility) {
-    this.setState({ messageCSS: false });
   }
 
   setPeerImage(image) {
@@ -111,8 +116,6 @@ class App extends Component {
       return;
     }
 
-    this.toggleMessageVisibility("SHOW");
-
     if (this.state.toggleSessionToken) {
       this.setState({
         joinSessionCSS: !this.state.toggleSessionToken
@@ -146,14 +149,11 @@ class App extends Component {
 
       this.startSession(randomBuff);
     } else {
-      // TODO: Fix this whole double click on "create session" thing
       this.clientController.udpSocket.close();
     }
   }
 
   startSession(randomBuff) {
-    console.log("am i here?");
-
     this.clientController.serverAddress = this.state.serverAddress;
     this.clientController.serverPort = parseInt(this.state.serverPort);
     this.clientController.startSocketListeners(this.udpSocket, randomBuff);
@@ -182,10 +182,7 @@ class App extends Component {
     var file = element.files[0];
     var reader = new FileReader();
     reader.onloadend = () => {
-      console.log("RESULT", reader.result);
       this.setState({ userImage: reader.result });
-
-      var myHeaders = new Headers();
 
       imgur.setClientId("7617bc3b7e87043");
 
@@ -429,13 +426,19 @@ class App extends Component {
   }
 }
 
-function header() {
+const header = () => {
   return (
     <div className="header">
-      <h1>Philippo-2-Philippo Chat</h1>
+      <div style={{ display: "inline-block" }}>
+        <h1 style={{ display: "inline-block", color: "#7986cb" }}>/&nbsp;</h1>
+        <h1 style={{ display: "inline-block" }}>Amigo-</h1>
+        <h1 style={{ display: "inline-block", color: "#7986cb" }}>2</h1>
+        <h1 style={{ display: "inline-block" }}>-Amigo</h1>
+        <h1 style={{ display: "inline-block", color: "#7986cb" }}>&nbsp;/</h1>
+      </div>
       <h4>A peer-to-peer chat client featuring NAT traversal and encryption</h4>
     </div>
   );
-}
+};
 
 export default App;
