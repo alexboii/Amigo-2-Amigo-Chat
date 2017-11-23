@@ -5,8 +5,6 @@ import { UnmountClosed as Collapse } from "react-collapse";
 import * as SessionController from "../controllers/SessionController";
 import loading_svg from "../../node_modules/loading-svg/loading-balls.svg";
 import ReactLoading from "react-loading";
-import ReactCSSTransitionGroup from "react-addons-css-transition-group";
-import { CSSTransitionGroup } from "react-transition-group"; // ES6
 import ClientController from "../controllers/ClientController";
 import net from "net";
 import Avatar from "material-ui/Avatar";
@@ -15,6 +13,7 @@ import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import TextField from "material-ui/TextField";
 import ReactCSSTransitionReplace from "react-css-transition-replace";
 import { List, ListItem } from "material-ui/List";
+import imgur from "imgur";
 
 const CSS_NAME = "button button--nuka button--round-s button--text-thick";
 
@@ -185,6 +184,20 @@ class App extends Component {
     reader.onloadend = () => {
       console.log("RESULT", reader.result);
       this.setState({ userImage: reader.result });
+
+      var myHeaders = new Headers();
+
+      imgur.setClientId("7617bc3b7e87043");
+
+      imgur
+        .uploadFile(file.path)
+        .then(json => {
+          console.log(json.data.link);
+          this.clientController.avatar = json.data.link;
+        })
+        .catch(function(err) {
+          console.error(err.message);
+        });
     };
     reader.readAsDataURL(file);
   }
@@ -401,7 +414,7 @@ class App extends Component {
                           type: "OWN",
                           body: e.target.value
                         });
-                        
+
                         this.refs.chatInput.value = "";
                       }
                     }
